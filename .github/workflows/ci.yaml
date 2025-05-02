@@ -29,7 +29,7 @@ jobs:
         run: just build-jetson-image -b jetson-orin-nano -d SD -l 36
 
       - name: Upload Image Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jetson-image
           path: jetson.img
