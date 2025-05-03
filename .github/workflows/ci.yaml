@@ -27,7 +27,7 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - name: Free up disk space
+      - name: Free up CI Runner disk space
         run: |
           echo "Disk space before cleanup:"
           df -h
@@ -52,6 +52,22 @@ jobs:
 
       - name: Build Root Filesystem
         run: just build-jetson-rootfs 24.04
+
+      - name: Optimize Root Filesystem
+        run: |
+          echo "Cleaning apt cache and logs..."
+          sudo chroot rootfs /bin/bash -c "\
+            apt-get clean && \
+            rm -rf /var/lib/apt/lists/* && \
+            rm -rf /var/log/* && \
+            rm -rf /tmp/* && \
+            apt-get remove --purge -y manpages man-db locales ubuntu-standard installation-report && \
+            apt-get autoremove -y && \
+            find /usr -type f -executable -exec strip --strip-unneeded {} + 2>/dev/null || true"
+
+          echo "Zero-filling free space to improve compression..."
+          sudo dd if=/dev/zero of=rootfs/zero.fill bs=1M || true
+          sudo rm -f rootfs/zero.fill
 
       - name: Build Jetson Image
         run: just build-jetson-image -b jetson-orin-nano -d SD -l 36
