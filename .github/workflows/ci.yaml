@@ -62,11 +62,16 @@ jobs:
           name: jetson-image
           path: jetson.img
 
+      - name: Compress Image
+        run: |
+          sudo apt-get install -y xz-utils
+          xz -9e --threads=0 jetson.img
+
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           name: Release ${{ github.ref_name }}
-          files: jetson.img
+          files: jetson.img.xz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
