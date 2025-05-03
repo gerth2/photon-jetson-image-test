@@ -5,7 +5,8 @@ on:
     branches:
       - main
       - master
-
+    tags:
+      - 'v*'  # Triggers on tags like v1.0, v2.3.4 etc.
 
 env:
   SOURCE_DATE_EPOCH: 0
@@ -15,16 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
-          # this might remove tools that are actually needed,
-          # if set to "true" but frees about 6 GB
           tool-cache: true
-          
-          # all of these default to true, but feel free to set to
-          # "false" if necessary for your workflow
           android: true
           dotnet: true
           haskell: true
@@ -66,3 +61,12 @@ jobs:
         with:
           name: jetson-image
           path: jetson.img
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          files: jetson.img
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
